@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Vidavakil.GitHub.io by vidavakil</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Vidavakil.GitHub.io</h1>
+        <p>Vida&#39;s blog </p>
+
+
+        <p class="view"><a href="https://github.com/vidavakil">View My GitHub Profile</a></p>
+
+      </header>
+      <section>
+        <h3>
+<a id="musings-on-deep-learning" class="anchor" href="#musings-on-deep-learning" aria-hidden="true"><span class="octicon octicon-link"></span></a>Musings on Deep Learning</h3>
+
+<p>Since <a href="https://www.tensorflow.org/">TensorFlow</a> was open-sourced by Google, I have been studying material found on its website in depth. The website has a number of links to <a href="http://colah.github.io/">Christopher Olah</a>'s blog, with excellent and thought provoking articles that I have tremendously enjoyed reading and pondering over. Starting with his article named <a href="http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/">Neural Networks, Manifolds, and Topology</a>, they have all made me think really hard on how and why deep neural networks actually work, and I am so grateful, because in the process my understanding of these networks has appreciated by leaps and bounds. Here I would like to share my own perspective and current thoughts on how deep neural networks might be working. I assume the reader has some basic familiarity with deep neural networks.</p>
+
+<h3>
+<a id="how-deep-neural-networks-work" class="anchor" href="#how-deep-neural-networks-work" aria-hidden="true"><span class="octicon octicon-link"></span></a>How Deep Neural Networks Work</h3>
+
+<p>Let's focus on simple multi-layer neural networks for classification, in which neurons perform a weighted sum of their inputs, add a bias term, and then apply a reasonable non-linearity to the result to squash/crop it, and assume that the last layer of the network is a Softmax layer (which I won't really focus on here). How does such a simple multi-layer neural network work? What does it do with a multi-dimensional input that is fed to it?</p>
+
+<p>Let’s start with an even simpler network where the input data is in R<sup>2</sup> (i.e.; 2D space). Assume in the first layer of the network we have a bunch of neurons. Each of them has a weight vector that can be thought of as defining a <em>hyperplane</em> (in our case, a straight line) in our input (2D) space. Points on one side of this line (hyperplane) have a positive <em>dot product</em> with the weight vector, and the further away they are from the line, the more positive the dot product is. And points on the opposite side of the line produce a negative dot product, and the farther they are the more negative the dot product is. Thus, the weight vector of this neuron, through the dot product action, induces a <em>gradient</em> (imagine a gray scale gradient). You can represent this gradient on a third axis. That is, let’s define a R<sup>2</sup>:R function from our original 2D input space to R. If you try to visualize this function in 3D, it will look like a flat plane/surface in 3D space that passes through our very 2D line, and one side of this plane is above the 2D plane of our inputs (corresponding to points with positive dot products), and the other side is below (corresponding to points with negative dot products). This surface represents the gradient induced by our dot product. This plane looks like a <em>slope</em> over our otherwise horizontal 2D input plane. Next, imagine each neuron of the first layer has its own such surface/slope/function/map. Note that for this first layer, we used the concept of a hyperplane defined by a weight vector (the weight vector being the norm of the hyperplane); we also interpreted the dot product between the input vector and the weight vector--which is really the size of the projection of the input vector on the weight vector--as the shade of the input vector with respect to the hyperplane; and then we reinterpreted the shade as the height of the input vector in an induced 3D space. </p>
+
+<p>Now, let’s move to the second layer. From the second layer and on, we won’t look at weight vectors of a neuron as inducing hyperplanes in a higher dimensional space any more (i.e., there is no deed to think about hyperplanes in n-dimensional  space where n is the number of inputs of a layer). Instead we try to see what we can do with the results of the preceding layer, which are R<sup>2</sup>:R functions (3D surfaces) computed by neurons of the previous layer. We would like to characterize what it means for the output of our second layer neuron to have a specific value; or more specifically, what is the shape/locus of all the original 2D input points that will generate the same output at this neuron. This neuron still does a dot product, and weights each of its inputs differently and then adds them up. So, let’s just do that, taking its inputs to be the 3D surfaces (more accurately, the R<sup>2</sup>:R functions) generated by the previous layer. The neuron multiplies each of those surfaces (R<sup>2</sup>:R functions) by the corresponding weight of the neuron, magnifying them, and then adds them all up, resulting in a new 3D map/surface (R<sup>2</sup>:R function), which looks like a landscapes with hills and valleys, and which is more interesting and complex compared to the simple slopes that came from the previous layer. Now, think of any point in the original 2D input space that is now mapped to a point on this 3D surface, and notice the fact that the height of that point represents the output of the second layer neuron. Moreover, think about cross sections of this 3D surface at different heights. Each of these cross sections (say one at height H) map/represent all points from the original 2D space that generate the same output value, H, at this second layer neuron. This neuron may have a bias term. What that bias term does is lifting up or pushing down the whole 3D surface. This neuron may also be followed by a non-linearity. What that non-linearity does is that it modifies this 3D surface along its 3rd dimension (more mathematically, the non-linearity is <em>composed</em> with the R<sup>2</sup>:R function). For example, if the non-linearity is a sigmoid, it squashes the high peaks and deep valleys of the 3D surface. If the non-linearity is a Relu, it cuts off the bottom of the 3D surface thus creating plato areas in the valleys. Other neurons on the second layer use their weights in other ways to combine the slopes of the previous layer into different 3D surfaces (R<sup>2</sup>:R functions). </p>
+
+<p>What happens in the next layer is very similar, except that the resulting <em>mountainous</em> range is going to be much more bumpy and the density of variations on that surfaces will likely be higher. This process continues on to the last layer. By then, the 3D surfaces associated with each of the last layer's neurons could be quite bumpy and rocky! At this point, the expectation is that for any given class of the inputs, a unique output neuron that is associated with that class would most likely produce the highest height on its 3D surface for members of that class, compared to the other neurons, and meanwhile that neuron is expected to produce smaller heights for inputs belonging to any other class. This means that points on the input 2D plane that belong to a given class must have been mapped to the highest peaks/regions of the 3D surface associated with their corresponding output neuron, and meanwhile they must also have been mapped to lower points on 3D surfaces of all other neurons (likely on their valleys). So that is how a neural network works with 2D inputs work. It creates a multitude of 3D maps in each layer that get combined with each other in different ways in the next layer, eventually generating complex 3D surfaces (R<sup>2</sup>:R functions) in the last layer that can differentiate between inputs of their class by assigning high peaks to them, and assigning lower heights (e.g., valleys) to any other input (compared to that of the neuron responsible for such other input).</p>
+
+<p>The above analysis will unsurprisingly make us think of each neuron as <em>composing</em> a nonlinear function with the weighted sum of multiple R<sup>2</sup>:R functions, added a bias. And each layer can be though of as a mapping of a set of R<sup>2</sup>:R functions to another set of R<sup>2</sup>:R functions. So, what is going on in a neural network can also be thought of some sort of complex/convoluted, yet structured form of functional composition. Perhaps this type of composition has a name. If not, we can call it <em>Neuronal Functional Composition</em>!</p>
+
+<p>When we train a neural network using back propagation and stochastic gradient descent, we are adjusting the ways the 3D surfaces that are input to the last layer’s neurons are combined by each output neuron (by adjusting the weights and biases), to improve the overall predication for the minibatch of inputs. And we try to modify the 3D surfaces at the input of the last layer as well, by back propagating an error to the previous layers, etc. So, what training does is shaping/carving the landscape of all these 3D surfaces/functions throughout the network. </p>
+
+<p>Now, the above was a simple network with 2D inputs, and it was easy (on the hindsight) to visualize what the neurons where doing by utilizing a third dimension. It would be much harder to visualize in our minds this same process for neural networks with higher-dimensional inputs. However, it is still true that for a network with n-dimensional inputs, the neurons of that network are combining R<sup>n</sup>:R functions into R<sup>n</sup>:R functions.  </p>
+
+<p>I will add some diagrams as soon as I can, to help with the visualization of the 2D example.</p>
+      </section>
+      <footer>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
